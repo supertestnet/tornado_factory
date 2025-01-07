@@ -400,7 +400,7 @@
                 var sig = tapscript.Signer.taproot.sign( privkey, txdata, 0 ).hex;
                 txdata.vin[ 0 ].witness = [ sig ];
                 var txhex = tapscript.Tx.encode( txdata ).hex;
-                console.log( `broadcast this tx that gives every user 10100 sats:` );
+                console.log( `broadcast this tx that gives every user ${funding_amount + average_bytesize_of_each_users_input + amount_per_user_to_cover_p2a_costs} sats:` );
                 console.log( txhex );
                 initial_transaction = txhex;
 
