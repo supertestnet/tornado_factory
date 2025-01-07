@@ -134,6 +134,7 @@
             var user_ejection_sigs = [];
             var average_bytesize_of_each_users_input = 100;
             var tx_fee_for_initial_tx = null;
+            var amount_per_user_to_cover_p2a_costs = 240 * 2;
             var current_round = 0;
             var connector_utxos = [];
             var connector_sigs = [];
@@ -164,8 +165,8 @@
                 }
                 $( '.welcome' ).classList.add( "hidden" );
                 $$( '.num_of_users' ).forEach( item => item.innerText = num_of_users );
-                $$( '.per_user_amount' ).forEach( item => item.innerText = funding_amount + average_bytesize_of_each_users_input );
-                $( '.amount_to_deposit' ).innerText = ( ( funding_amount + average_bytesize_of_each_users_input ) * num_of_users ) + tx_fee_for_initial_tx;
+                $$( '.per_user_amount' ).forEach( item => item.innerText = funding_amount + average_bytesize_of_each_users_input + amount_per_user_to_cover_p2a_costs );
+                $( '.amount_to_deposit' ).innerText = ( ( funding_amount + average_bytesize_of_each_users_input ) * num_of_users ) + tx_fee_for_initial_tx + ( amount_per_user_to_cover_p2a_costs * num_of_users );
                 $( '.part_2' ).classList.remove( "hidden" );
                 $( '.keys' ).classList.remove( "hidden" );
                 $$( '.eject_user' ).forEach( item => item.onclick = e => {ejectUser( e );});
@@ -179,14 +180,14 @@
                 $( '.loading' ).classList.add( "hidden" );
                 $( '.multisig' ).innerText = multisig;
                 $( '.initial_transaction' ).innerText = initial_transaction;
-                $$( '.user .on_chain_balance' ).forEach( item => item.innerText = funding_amount + average_bytesize_of_each_users_input );
+                $$( '.user .on_chain_balance' ).forEach( item => item.innerText = funding_amount + average_bytesize_of_each_users_input + amount_per_user_to_cover_p2a_costs );
                 $( '.part_3' ).classList.remove( "hidden" );
                 $( '.keys' ).classList.remove( "hidden" );
             }
             $( '.do_coinjoin' ).onclick = () => {
                 doCoinjoin();
                 $$( '.user .on_chain_balance' ).forEach( item => item.innerText = 0 );
-                $$( '.user .off_chain_balance' ).forEach( item => item.innerText = funding_amount - 240 - 240 );
+                $$( '.user .off_chain_balance' ).forEach( item => item.innerText = funding_amount );
                 $$( '.user .eject_user' ).forEach( item => item.disabled = false );
             }
             var ejectUser = e => {
@@ -196,13 +197,9 @@
                 e.target.parentElement.parentElement.getElementsByClassName( "on_chain_balance" )[ 0 ].innerText = funding_amount;
                 e.target.disabled = true;
                 var round = current_round;
-                //broadcast the round tx
                 var tapleaf = tree[ 0 ];
                 var [ _, cblock ] = tapscript.Tap.getPubKey( backup_pubkey, { target: tapleaf, tree });
                 rounds[ round ].vin[ 0 ].witness = [ ...round_sigs[ round ].reverse(), scripts[ 0 ], cblock ];
-                var txhex = tapscript.Tx.encode( rounds[ round ] ).hex;
-                console.log( `broadcast this round_${round} tx that lets any user leave:` );
-                console.log( txhex );
 
                 //to spend from the user's branch, get a utxo that you can pay the mining fee with
                 var users_addy = tapscript.Address.fromScriptPubKey( [ 1, pubkeys[ user ] ], address_type );
@@ -254,7 +251,7 @@
                         //240 for output 0 -- so it's funding_amount - 240 - 240
                         //todo: change the scriptPubKey to a 2 of 2 multisig with a
                         //routing node
-                        value: funding_amount - 240 - 240,
+                        value: funding_amount + amount_per_user_to_cover_p2a_costs - 240 - 240,
                         scriptPubKey: tapscript.Address.toScriptPubKey( "tb1pj0rkn0qvvc5yg876qzh5ee56dutprku826ps3uantpx4vx3mujnq3u6uhm" ),
                     }],
                 });
@@ -288,6 +285,11 @@
                 var sig = tapscript.Signer.taproot.sign( keys[ user ], exit_fee_tx, 1 ).hex;
                 exit_fee_tx.vin[ 1 ].witness = [ sig ];
 
+                //show the user the raw transaction hex for creating the midstate
+                var txhex = tapscript.Tx.encode( rounds[ round ] ).hex;
+                console.log( `broadcast this round_${round} tx that lets any user leave:` );
+                console.log( txhex );
+
                 //show the user the raw transaction hex for paying the round fee
                 var txhex = tapscript.Tx.encode( round_fee_tx ).hex;
                 console.log( `broadcast this round_fee_tx tx that pays the fee for this round:` );
@@ -319,7 +321,7 @@
                 num_of_users = Number( prompt( `Enter how many people you want to have in this channel factory. Note that the maximum is 30.` ) );
                 funding_amount = Number( prompt( `Enter how many sats you want each party to have in their channel. Note that each party will get the same amount.` ) );
                 tx_fee_for_initial_tx = num_of_users * average_bytesize_of_each_users_input;
-                amount_to_deposit = ( ( funding_amount + average_bytesize_of_each_users_input ) * num_of_users ) + tx_fee_for_initial_tx;
+                amount_to_deposit = ( ( funding_amount + average_bytesize_of_each_users_input ) * num_of_users ) + tx_fee_for_initial_tx + ( amount_per_user_to_cover_p2a_costs * num_of_users );
 
                 //make a 10 of 10 multisig
                 var i; for ( i=0; i<num_of_users; i++ ) keys.push( bytesToHex( nobleSecp256k1.utils.randomPrivateKey() ) );
@@ -380,7 +382,7 @@
                 var outputs = [];
                 pubkeys.forEach( pubkey => {
                     outputs.push({
-                        value: 10_100,
+                        value: funding_amount + average_bytesize_of_each_users_input + amount_per_user_to_cover_p2a_costs,
                         scriptPubKey: [ 1, pubkey ],
                     });
                 });
@@ -413,7 +415,7 @@
                 coinjoin = tapscript.Tx.create({
                     vin,
                     vout: [{
-                        value: 100_000,
+                        value: ( funding_amount * num_of_users ) + ( amount_per_user_to_cover_p2a_costs * num_of_users ),
                         scriptPubKey: tapscript.Address.toScriptPubKey( multisig ),
                     }],
                 });
@@ -432,13 +434,13 @@
                             value: 240,
                             scriptPubKey: "51024e73",
                         },{
-                            value: funding_amount - 330 - 240,
+                            value: funding_amount + amount_per_user_to_cover_p2a_costs - 330 - 240,
                             scriptPubKey: tapscript.Address.toScriptPubKey( midstate_addresses[ i ] ),
                         }],
                     });
                     if ( i !== num_of_users - 1 ) {
                         round.vout.push({
-                            value: ( funding_amount * num_of_users ) - ( funding_amount * ( i + 1 ) ) - ( 330 * num_of_users ),
+                            value: ( funding_amount * num_of_users ) + ( amount_per_user_to_cover_p2a_costs * num_of_users ) - ( funding_amount * ( i + 1 ) ) - ( amount_per_user_to_cover_p2a_costs * ( i + 1 ) ) - ( 330 * num_of_users ),
                             scriptPubKey: tapscript.Address.toScriptPubKey( multisig ),
                         });
                     }
@@ -502,7 +504,7 @@
                                 //240 for output 0 -- so it's funding_amount - 240 - 240
                                 //todo: change the scriptPubKey to a 2 of 2 multisig with a
                                 //routing node
-                                value: funding_amount - 240 - 240,
+                                value: funding_amount + amount_per_user_to_cover_p2a_costs - 240 - 240,
                                 scriptPubKey: tapscript.Address.toScriptPubKey( "tb1pj0rkn0qvvc5yg876qzh5ee56dutprku826ps3uantpx4vx3mujnq3u6uhm" ),
                             }],
                         });
