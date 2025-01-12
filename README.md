@@ -1,6 +1,8 @@
 # Tornado factory
 A bitcoin channel factory that works without a soft fork
 
+Note: this idea builds on [a previous idea](https://github.com/supertestnet/hurricash) I had called hurricash. If you find tornado cash difficult to grok, consider starting there.
+
 # How it works
 
 Have n people prepare and sign a coinjoin that funds an n of n multisig with Q sats apiece. It is important that Q be the same for every user and that every user has one of the keys to the multisig. Before the users share their coinjoin sigs with one another, they generate n presigned txs, to which each user gets a copy. Each presigned tx defines a “round” (e.g. round 1, round 2...round n).
