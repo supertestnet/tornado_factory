@@ -1,7 +1,7 @@
 # Tornado factory
 A bitcoin channel factory that works without a soft fork
 
-Note: this idea builds on [a previous idea](https://github.com/supertestnet/hurricash) I had called hurricash. If you find tornado cash difficult to grok, consider starting there.
+Note: this idea builds on [a previous idea](https://github.com/supertestnet/hurricash) I had called hurricash. If you find tornado factory difficult to grok, consider starting there.
 
 # How it works
 
