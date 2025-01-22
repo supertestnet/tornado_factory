@@ -3,7 +3,7 @@ A bitcoin channel factory that works without a soft fork
 
 Note: this idea builds on [a previous idea](https://github.com/supertestnet/hurricash) I had called hurricash. If you find tornado factory difficult to grok, consider starting there.
 
-Also note: despite saying this is a "channel factory," it's only a POC and does not give users actual channels. It just gives them a unilaterally withdrawal utxo whose txid, vout, amount, and address they know in advance. But since that info is reliably available from the start, devs can make a channel using that info and treat them as "real" even before they go on chain (and even if they \*never\* go on chain). I am working on software that does that [here](https://github.com/supertestnet/hedgehog_factory).
+Also note: despite saying this is a "channel factory," it's only a POC and does not give users actual channels. It just gives them a unilaterally withdrawal utxo whose txid, vout, amount, and address they know in advance. But since that info is reliably available from the start, devs can make a channel using that info and treat them as "real" even before they go on chain (and even if they \*never\* go on chain). I am working on software to demonstrate this feature [here](https://github.com/supertestnet/hedgehog_factory).
 
 # How it works
 
