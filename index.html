@@ -132,7 +132,7 @@
             var round_sigs = [];
             var user_addresses = [];
             var user_ejection_sigs = [];
-            var average_bytesize_of_each_users_input = 200;
+            var average_bytesize_of_each_users_input = 150;
             var tx_fee_for_initial_tx = null;
             var amount_per_user_to_cover_p2a_costs = 240 * 2;
             var current_round = 0;
@@ -204,7 +204,7 @@
                 //to spend from the user's branch, get a utxo that you can pay the mining fee with
                 var users_addy = tapscript.Address.fromScriptPubKey( [ 1, pubkeys[ user ] ], address_type );
                 user_addresses.push( users_addy );
-                var fee_for_round = 2 * num_of_users * average_bytesize_of_each_users_input;
+                var fee_for_round = 4 * num_of_users * average_bytesize_of_each_users_input;
                 console.log( `please send ${fee_for_round} sats to this address:` );
                 console.log( users_addy );
                 var txid2 = prompt( `You are about to eject the user you selected. Please send ${fee_for_round} sats to the address in your console so that your user can pay the mining fee for their exit transaction, then enter the txid of your deposit` );
@@ -226,7 +226,7 @@
                         }
                     }],
                     vout: [{
-                        value: ( num_of_users * average_bytesize_of_each_users_input ) - 240,
+                        value: 2 * ( ( num_of_users * average_bytesize_of_each_users_input ) - 240 ),
                         scriptPubKey: [ 1, pubkeys[ user ] ],
                     }],
                 });
